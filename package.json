@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node output/index.js",
+    "deploy": "vercel deploy --prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
