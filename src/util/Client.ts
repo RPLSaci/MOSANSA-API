@@ -13,6 +13,8 @@ export class Client {
   async start() {
     if (this.MongoUrl) {
       await connect(this.MongoUrl);
+      return;
     }
+    console.log("No URI");
   }
 }

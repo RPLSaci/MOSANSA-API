@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface TagsSchema extends mongoose.Document {
+export interface AbsenRPL extends mongoose.Document {
    nama: string,
    kelas: string,
    status: string,
@@ -8,7 +8,7 @@ export interface TagsSchema extends mongoose.Document {
    time: Date,
 }
 
-export const model = mongoose.model<TagsSchema>("Tags", new mongoose.Schema({
+export const model = mongoose.model<AbsenRPL>("AbsenRPL", new mongoose.Schema({
   nama: {
     type: String,
     required: false,
