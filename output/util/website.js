@@ -7,6 +7,9 @@ const app = express();
 app.use("/api/", apiRouter);
 // redirect all http request to https
 // app.use((req:express.Request, res:express.Response, next:()=> void) => req.secure ? next() : res.redirect(`https://${req.hostname}${req.url}`));
+app.get("/", (req, res) => {
+    res.send("Ping Pong");
+});
 export async function start(port) {
     console.log("==========");
     app.listen(port, () => console.log(`Server started on port ${port}`));
