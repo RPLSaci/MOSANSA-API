@@ -1,7 +1,6 @@
 node_modules
 _IGNORE_session
 **.data.json
-output
 
 # managed by open-wa
 **.node-persist**
