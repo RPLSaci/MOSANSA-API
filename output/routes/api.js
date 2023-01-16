@@ -1,4 +1,5 @@
 import * as Express from "express";
+import * as csv from "fast-csv";
 const router = Express.Router();
 import { model } from "../db/model/absen.js";
 router.post("/absen", async function (req, res) {
@@ -50,5 +51,14 @@ router.delete("/deleteAbsen", async function (req, res) {
     catch (err) {
         res.json({ status: 401, message: err.message });
     }
+});
+router.get("/export", async function (req, res) {
+    model.find({}).lean().exec((err, absenRPLs) => {
+        if (err)
+            throw err;
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", "attachment; filename=" + "AbsenRPL.csv");
+        csv.write(absenRPLs, { headers: true }).pipe(res);
+    });
 });
 export default router;
