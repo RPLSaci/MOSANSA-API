@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export interface AbsenRPL extends mongoose.Document {
    nama: string,
    kelas: string,
+   kelasStr: string,
    status: string,
    alasan: string,
    time: Date,
@@ -14,6 +15,10 @@ export const model = mongoose.model<AbsenRPL>("AbsenRPL", new mongoose.Schema({
     required: false,
   },
   kelas: {
+    type: String,
+    required: true,
+  },
+  kelasStr: {
     type: String,
     required: true,
   },

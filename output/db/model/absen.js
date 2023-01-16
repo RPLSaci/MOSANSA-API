@@ -8,6 +8,10 @@ export const model = mongoose.model("AbsenRPL", new mongoose.Schema({
         type: String,
         required: true,
     },
+    kelasStr: {
+        type: String,
+        required: true,
+    },
     status: {
         type: String,
         required: true,
