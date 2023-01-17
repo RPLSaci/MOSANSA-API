@@ -2,11 +2,11 @@
   "name": "tcukawiwa",
   "version": "1.0.0",
   "description": "",
-  "main": "output/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node output/index.js",
+    "start": "node dist/index.js",
     "dev": "npm run build && npm run start",
     "deploy": "vercel deploy --prod",
     "test": "echo \"Error: no test specified\" && exit 1"
