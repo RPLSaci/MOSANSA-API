@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "output",
     "rootDir": "src",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
