@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node output/index.js",
+    "start": "node output/index.js",
+    "dev": "npm run build && npm run start",
     "deploy": "vercel deploy --prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
