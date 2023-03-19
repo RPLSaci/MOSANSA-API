@@ -6,27 +6,20 @@ import {model} from "../db/model/absen.js";
 router.post("/absen", async function(req, res) {
   try {
     console.log(req.body);
-    const {nama, kelas, status, kelasStr, alasan} = req.body;
-    const absenModel = new model({nama, kelas, status, alasan: (alasan|| ""), kelasStr, time: Date.now()});
-    await absenModel.save();
-    res.json({status: 200, message: `Success ${nama}, ${kelas}${kelasStr.toUpperCase()}`});
+    const {nama, id} = req.body;
+
+    const absenQR = await model.findOne({absenId: id});
+
+    if (absenQR) {
+      absenQR.absen.push(new Date());
+      await absenQR.save();
+      res.json({status: 200, message: `${nama} telah absen`});
+    } else {
+      throw new Error("ID tidak ditemukan");
+    }
   } catch (err) {
     res.json({status: 401, message: (err as Error).message});
   }
-});
-
-router.get("/showabsen", async function(req:Express.Request, res:Express.Response) {
-  try {
-    const manusia = await model.find();
-    console.log(manusia);
-    res.json({status: 200, message: JSON.stringify(manusia)});
-  } catch (err) {
-    res.json({status: 401, message: (err as Error).message});
-  }
-});
-
-router.get("/ping", async function(req:Express.Request, res:Express.Response) {
-  res.json({status: 200, message: "pong"});
 });
 
 router.post("/checkAuthority", async function(req:Express.Request, res:Express.Response) {
@@ -41,14 +34,70 @@ router.post("/checkAuthority", async function(req:Express.Request, res:Express.R
   }
 });
 
-router.delete("/deleteAbsen", async function(req, res) {
+function checkAuth(req: Express.Request, res: Express.Response, next: Express.NextFunction) {
+  const {token} = req.body;
   try {
-    if (req.body.token !== process.env.TOKENLOGIN) {
-      throw new Error("Invalid Token");
+    if (token !== process.env.TOKENLOGIN) {
+      throw Error("Unauthorized Access Token");
     }
-    const id = req.body.id;
-    await model.deleteOne({_id: id});
-    res.json({status: 200, message: "Successfully deleted the document"});
+    next();
+  } catch (err) {
+    res.json({status: 400, message: (err as Error).message});
+  }
+}
+
+router.get("/getuser", async function(req, res) {
+  try {
+    const {id} = req.query;
+    const absenQR = await model.findOne({absenId: id});
+
+    if (!absenQR) {
+      throw new Error("ID tidak ditemukan");
+    }
+    res.json({status: 200, message: absenQR});
+  } catch (err) {
+    res.json({status: 401, message: (err as Error).message});
+  }
+});
+
+router.post("/addabsen", checkAuth, async function(req, res) {
+  try {
+    const {nama, kelas, id} = req.body;
+    const absenQR = await model.findOne({absenId: id});
+    if (absenQR) {
+      throw new Error("ID sudah ada");
+    } else {
+      const newAbsen = new model({
+        nama,
+        kelas,
+        absenId: id,
+      });
+      await newAbsen.save();
+      res.json({status: 200, message: `${nama} telah ditambahkan`});
+    }
+  } catch (err) {
+    res.json({status: 401, message: (err as Error).message});
+  }
+});
+
+router.delete("/remuser", checkAuth, async function(req, res) {
+  try {
+    const {id} = req.body;
+    const deletedUser = await model.findOneAndDelete({absenId: id});
+    if (!deletedUser) {
+      throw new Error("ID tidak ditemukan");
+    } else {
+      res.json({status: 200, message: `${deletedUser.nama} telah dihapus`});
+    }
+  } catch (err) {
+    res.json({status: 401, message: (err as Error).message});
+  }
+});
+
+router.get("/showabsen", async function(req, res) {
+  try {
+    const absenRPLs = await model.find({});
+    res.json({status: 200, message: absenRPLs});
   } catch (err) {
     res.json({status: 401, message: (err as Error).message});
   }
