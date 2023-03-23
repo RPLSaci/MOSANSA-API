@@ -1,42 +1,120 @@
 import * as Express from "express";
-import * as csv from "fast-csv";
 const router = Express.Router();
-import { model } from "../db/model/absen.js";
-router.post("/absen", async function (req, res) {
+import fetch from "node-fetch";
+import { model } from "../db/model/dokumentasi.js";
+import { model as userModel } from "../db/model/user.js";
+import "dotenv/config";
+const api_key = process.env.API_KEY;
+router.post("/newUser", async function (req, res) {
     try {
-        console.log(req.body);
-        const { nama, id } = req.body;
-        const absenQR = await model.findOne({ absenId: id });
-        if (absenQR) {
-            absenQR.absen.push(new Date());
-            await absenQR.save();
-            res.json({ status: 200, message: `${nama} telah absen` });
+        const { nama, password, tipe, token } = req.body;
+        if (token !== process.env.TOKENSUPERADMIN) {
+            throw Error("Unauthorized Access Token");
         }
-        else {
+        const newUser = new userModel({
+            nama,
+            password,
+            tipe,
+        });
+        await newUser.save();
+        res.status(200).json({ message: "Success" });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred" });
+    }
+});
+router.delete("/remFolder", checkAuth, async function (req, res) {
+    try {
+        const { idAcara } = req.body;
+        const deletedUser = await model.findOneAndDelete({ idAcara: idAcara });
+        if (!deletedUser) {
             throw new Error("ID tidak ditemukan");
         }
-    }
-    catch (err) {
-        res.json({ status: 401, message: err.message });
-    }
-});
-router.post("/checkAuthority", async function (req, res) {
-    const { token } = req.body;
-    try {
-        if (token !== process.env.TOKENLOGIN) {
-            throw Error("Unauthorized Access Token");
+        else {
+            res.json({ status: 200, message: `${deletedUser.idAcara} telah dihapus` });
         }
-        res.json({ status: 200, message: "Authorized" });
     }
-    catch (err) {
-        res.json({ status: 400, message: err.message });
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred" });
     }
 });
-function checkAuth(req, res, next) {
-    const { token } = req.body;
+router.get("/allFolders", async function (req, res) {
     try {
-        if (token !== process.env.TOKENLOGIN) {
-            throw Error("Unauthorized Access Token");
+        const data = await model.find();
+        res.status(200).json({ status: 200, message: data });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred" });
+    }
+});
+router.post("/login", async function (req, res) {
+    const { username, password } = req.body;
+    try {
+        if (!username || !password) {
+            throw Error("Username or Password is empty");
+        }
+        const user = await userModel.findOne({ username });
+        if (!user || user.password !== password) {
+            throw new Error("Invalid username or password");
+        }
+        res.json({ status: 200, message: "Success" });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "An error occurred" });
+    }
+});
+router.post("/getFiles", async function (req, res) {
+    try {
+        console.log(req.body);
+        const { folderId } = req.body;
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${api_key}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        res.status(200).json(data);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred" });
+    }
+});
+router.post("/addFolder", checkAuth, async function (req, res) {
+    try {
+        const { url, namaAcara, deskripsiAcara, user, idAcara, tanggal } = req.body;
+        // if id acara is already exist on model
+        const isExist = await model.findOne({ idAcara });
+        if (isExist) {
+            throw Error("Id Acara already exist");
+        }
+        const newTanggal = new Date(tanggal);
+        const newDoc = new model({
+            url,
+            namaAcara,
+            deskripsiAcara,
+            user,
+            tanggal: newTanggal,
+            idAcara,
+        });
+        await newDoc.save();
+        res.status(200).json({ status: 200, message: "Success" });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 501, error: "An error occurred " + error.message });
+    }
+});
+async function checkAuth(req, res, next) {
+    const { username, password } = req.body;
+    try {
+        if (!username || !password) {
+            throw Error("Username or Password is empty");
+        }
+        const user = await userModel.findOne({ username });
+        if (!user || user.password !== password) {
+            throw new Error("Invalid username or password");
         }
         next();
     }
@@ -44,71 +122,4 @@ function checkAuth(req, res, next) {
         res.json({ status: 400, message: err.message });
     }
 }
-router.get("/getuser", async function (req, res) {
-    try {
-        const { id } = req.query;
-        const absenQR = await model.findOne({ absenId: id });
-        if (!absenQR) {
-            throw new Error("ID tidak ditemukan");
-        }
-        res.json({ status: 200, message: absenQR });
-    }
-    catch (err) {
-        res.json({ status: 401, message: err.message });
-    }
-});
-router.post("/addabsen", checkAuth, async function (req, res) {
-    try {
-        const { nama, kelas, id } = req.body;
-        const absenQR = await model.findOne({ absenId: id });
-        if (absenQR) {
-            throw new Error("ID sudah ada");
-        }
-        else {
-            const newAbsen = new model({
-                nama,
-                kelas,
-                absenId: id,
-            });
-            await newAbsen.save();
-            res.json({ status: 200, message: `${nama} telah ditambahkan` });
-        }
-    }
-    catch (err) {
-        res.json({ status: 401, message: err.message });
-    }
-});
-router.delete("/remuser", checkAuth, async function (req, res) {
-    try {
-        const { id } = req.body;
-        const deletedUser = await model.findOneAndDelete({ absenId: id });
-        if (!deletedUser) {
-            throw new Error("ID tidak ditemukan");
-        }
-        else {
-            res.json({ status: 200, message: `${deletedUser.nama} telah dihapus` });
-        }
-    }
-    catch (err) {
-        res.json({ status: 401, message: err.message });
-    }
-});
-router.get("/showabsen", async function (req, res) {
-    try {
-        const absenRPLs = await model.find({});
-        res.json({ status: 200, message: absenRPLs });
-    }
-    catch (err) {
-        res.json({ status: 401, message: err.message });
-    }
-});
-router.get("/export", async function (req, res) {
-    model.find({}).lean().exec((err, absenRPLs) => {
-        if (err)
-            throw err;
-        res.setHeader("Content-Type", "text/csv");
-        res.setHeader("Content-Disposition", "attachment; filename=" + "AbsenRPL.csv");
-        csv.write(absenRPLs, { headers: true }).pipe(res);
-    });
-});
 export default router;

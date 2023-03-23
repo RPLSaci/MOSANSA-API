@@ -1,25 +1,38 @@
-import qr from "qrcode"
+import fetch from 'node-fetch';
 
-const data = JSON.stringify({nama:"Farrel",id:123}) // the data to encode as a QR code
-const options = { // optional QR code configuration options
-    errorCorrectionLevel: 'H',
-    type: 'image/jpeg',
-    quality: 0.3,
-    margin: 1,
-    color: {
-        dark: '#000000',
-        light: '#ffffff'
-    }
-};
 
-// create a QR code and pipe it to a base64 string
-qr.toDataURL(data, options, (err, url) => {
-    if (err) throw err;
-    console.log(url); // base64-encoded image string
-});
+// const api_key = "AIzaSyAHkp6gQWdVXPHYhdCQnJMebLxpXG5Fg50"
+// const folderId = '1bsglL6CE08UODrYp9R6k3V8n3RgIqyjc';
 
-// create a QR code and pipe it to an image file
-qr.toFile('qr-code.jpeg', data, options, (err) => {
-    if (err) throw err;
-    console.log('QR code saved as qr-code.jpeg');
-});
+// var url = "https://www.googleapis.com/drive/v3/files?q='" + folderId + "'+in+parents&key=" + api_key;
+
+// fetch(url).then(function(response) {
+//     response.json().then(console.log)
+// })
+
+
+// fetch("https://moonlgh-orange-space-chainsaw-j94649gpgq6frq6-8080.preview.app.github.dev/api/getFiles",{
+//     method: "POST",
+//     headers: {
+//         "Content-Type": "application/json"
+//     },
+//     body: JSON.stringify({
+//         folderId:"1BBpO1FEZMC1UHOfECL1q-Ds6isGRm8U3"
+//     })
+// }).then(function(response) {
+//     response.json().then(console.log)
+// })
+fetch("https://moonlgh-orange-space-chainsaw-j94649gpgq6frq6-8080.preview.app.github.dev/api/newUser",{
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        username:"mosansa",
+        password:"mosansa",
+        token:"SACHIE2023",
+        tipe:"Organisasi"
+    })
+}).then(function(response) {
+    response.json().then(console.log)
+})

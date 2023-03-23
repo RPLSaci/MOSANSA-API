@@ -12,3 +12,6 @@ output
 .env
 core.*
 .vercel
+
+
+*_secret.json
