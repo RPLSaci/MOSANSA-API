@@ -73,7 +73,14 @@ router.post("/login", async function(req:Express.Request, res:Express.Response) 
 router.post("/getFiles", async function(req:Express.Request, res:Express.Response) {
   try {
     console.log(req.body);
-    const {folderId} = req.body;
+    let {folderId} = req.body;
+
+    const folderOnModel = await model.findOne({idAcara: folderId});
+    if (folderOnModel) {
+      folderId = folderOnModel.url;
+      folderId = getDriveIdFromUrl(folderId);
+    }
+
     const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${api_key}`;
     const response = await fetch(url);
     const data = await response.json();
@@ -132,3 +139,14 @@ async function checkAuth(req: Express.Request, res: Express.Response, next: Expr
 
 
 export default router;
+
+
+function getDriveIdFromUrl(url:string) {
+  // Extract the file ID from the URL
+  const match = url.match(/\/([a-zA-Z0-9_-]{25,})/);
+  if (match) {
+    return match[1];
+  } else {
+    return null;
+  }
+}
